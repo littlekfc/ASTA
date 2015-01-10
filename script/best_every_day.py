@@ -7,35 +7,62 @@ import logging
 
 class BestEveryDay(object):
 
-    STOCK_PRICE_URL = "http://ifzq.gtimg.cn/appstock/app/fqkline/get?p=1&param=sz%s,day,,,320,qfq"
-    BOLL_TECH_ANAL = "http://ifzq.gtimg.cn/appstock/indicators/BOLL/D1?market=SZ&code=%s&args=20&start=&end=&limit=320&fq=qfq"
+    STOCK_PRICE_URL = "http://ifzq.gtimg.cn/appstock/app/fqkline/get?p=1&param=%s,day,,,320,qfq"
+    BOLL_TECH_ANAL = "http://ifzq.gtimg.cn/appstock/indicators/BOLL/D1?market=%s&code=%s&args=20&start=&end=&limit=320&fq=qfq"
     #http://baike.baidu.com/view/965844.htm
-    SZ_A = "000%03d"
+    SZ_A =  {
+        "code": "000%03d",
+        "market": "SZ",
+        "full_code": "sz000%03d"
+    }
+    SH_A1 = {
+        "code": "600%03d",
+        "market": "SH",
+        "full_code" : "sh600%03d"
+    }
+    SH_A2 = {
+        "code" : "601%03d",
+        "market" : "SH",
+        "full_code" : "sh601%03d"
+    }
+    SH_A3 = {
+        "code" : "603%03d",
+        "market": "SH",
+        "full_code" : "sh603%03d"
+    }
     TIMEOUT = 10
-
+    LOW_RATE = 0.03
 
     def __init__(self):
         logging.basicConfig(filename='best.log', format='%(asctime)s : %(levelname)s : %(message)s', level=logging.INFO)
         logging.getLogger('requests').setLevel(logging.ERROR)
 
-    def start(self):
+    def find_best(self, market):
         for i in xrange(1, 1000):
-            stock_num = self.SZ_A % i
-            stock_price_url = self.STOCK_PRICE_URL % stock_num
-            boll_url = self.BOLL_TECH_ANAL % stock_num
+            stock_num = market['code'] % i
+            full_code = market['full_code'] % i
+            stock_price_url = self.STOCK_PRICE_URL % full_code
+            boll_url = self.BOLL_TECH_ANAL % (market['market'], stock_num)
             try:
                 stock_info = requests.get(stock_price_url, timeout=self.TIMEOUT).json()
                 boll_info = requests.get(boll_url, timeout=self.TIMEOUT).json()
                 last_day_boll = boll_info['data'][-2]
-                last_day_price = stock_info['data']['sz%s' % stock_num]['qfqday'][-2]
-                name = stock_info['data']['sz%s' % stock_num]['qt']['sz%s' % stock_num][1]
-                logging.info('start -- %s, %s, %s, %s, %s' % (name, stock_num, last_day_price[2], last_day_boll['LB'], \
-                                        (float(last_day_price[2]) - float(last_day_boll['LB'])) / (float(last_day_price[2])*1.0)
-                                                             ))
-                if (float(last_day_price[2]) - float(last_day_boll['LB'])) / (float(last_day_price[2])*1.0) <= 0.02:
-                    logging.info('get -- (%s, %s, price: %s, (price-boll)/price: %s )' % (name, stock_num, last_day_price[2], (float(last_day_price[2]) - float(last_day_boll['LB'])) / (float(last_day_price[2])*1.0)))
+                last_day_price = stock_info['data'][full_code]['qfqday'][-2]
+                name = stock_info['data'][full_code]['qt'][full_code][1]
+                rate = (float(last_day_price[2]) - float(last_day_boll['LB'])) / float(last_day_price[2])
+                logging.info('start -- %s, %s, %s, %s, %s' % (name, stock_num, last_day_price[2],\
+                                                              last_day_boll['LB'], rate))
+                if rate <= self.LOW_RATE and name.find("ST") == -1 and name.find(u"退市") == -1:
+                    logging.info('get -- (%s, %s, price: %s, rate: %s )' % (name, stock_num, last_day_price[2], rate))
             except Exception as e:
+                logging.info("error %s" % e)
                 pass
+
+    def start(self):
+        self.find_best(self.SZ_A)
+        self.find_best(self.SH_A1)
+        self.find_best(self.SH_A2)
+        self.find_best(self.SH_A3)
 
 
 if __name__ == "__main__":
