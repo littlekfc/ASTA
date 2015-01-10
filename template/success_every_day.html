@@ -1,0 +1,30 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>Success_every_day</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/foundation/5.5.0/css/foundation.min.css" type="text/css" media="screen" charset="utf-8">
+</head>
+<body>
+<table>
+  <thead>
+    <tr>
+      <th width="200">Stock Name</th>
+      <th>Stock Code</th>
+      <th width="150">Price</th>
+      <th width="150">Rate</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for item in data %}
+        <tr>
+            <td>{{item['name']}}</td>
+            <td>{{item['stock_code']}}</td>
+            <td>{{item['current_price']}}</td>
+            <td>{{item['price_to_low_boll_rate']}}</td>
+        </tr>
+    {% end %}
+  </tbody>
+</table>
+</body>
+</html>
