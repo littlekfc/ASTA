@@ -11,9 +11,13 @@ import market_config
 
 class GetBollData(object):
 
+<<<<<<< HEAD
     BOLL_TECH_ANAL_DAY = "http://ifzq.gtimg.cn/appstock/indicators/BOLL/D1?market=%s&code=%s&args=20&start=&end=&limit=2&fq=qfq"
     BOLL_TECH_ANAL_WEEK = "http://ifzq.gtimg.cn/appstock/indicators/BOLL/W1?market=%s&code=%s&args=20&start=&end=&limit=2&fq=qfq"
     BOLL_TECH_ANAL_MONTH = "http://ifzq.gtimg.cn/appstock/indicators/BOLL/M1?market=%s&code=%s&args=20&start=&end=&limit=2&fq=qfq"
+=======
+    BOLL_TECH_ANAL = "http://ifzq.gtimg.cn/appstock/indicators/BOLL/D1?market=%s&code=%s&args=20&start=&end=&limit=320&fq=qfq"
+>>>>>>> 4ce69f3604d7f0c2c12d90de2c29685991b9ba23
 
     TIMEOUT = 10
 
@@ -32,6 +36,7 @@ class GetBollData(object):
         for i in market["range"]:
             stock_num = market['code'] % i
             full_code = market['full_code'] % i
+<<<<<<< HEAD
             boll_url_day = self.BOLL_TECH_ANAL_DAY % (market['market'], stock_num)
             boll_url_week = self.BOLL_TECH_ANAL_WEEK % (market['market'], stock_num)
             boll_url_month = self.BOLL_TECH_ANAL_MONTH % (market['market'], stock_num)
@@ -48,19 +53,38 @@ class GetBollData(object):
                     stock_num, boll_data_day['UB'], boll_data_day['BOLL'], boll_data_day['LB'],
                     boll_data_week['UB'], boll_data_week['BOLL'], boll_data_week['LB'],
                     boll_data_month['UB'], boll_data_month['BOLL'], boll_data_month['LB'], boll_data_day['DATE']))
+=======
+            boll_url = self.BOLL_TECH_ANAL % (market['market'], stock_num)
+            try:
+                boll_info = requests.get(boll_url, timeout=self.TIMEOUT).json()
+                last_day_boll = boll_info['data'][-2]
+                logging.info('get -- %s : %s' % (full_code, last_day_boll))
+                self.cur.execute(
+                    "REPLACE INTO boll (code,up_bound,middle,low_bound,date) VALUES ('%s',%s,%s,%s,'%s')" % (
+                    stock_num, last_day_boll['UB'], last_day_boll['BOLL'], last_day_boll['LB'], last_day_boll['DATE']))
+>>>>>>> 4ce69f3604d7f0c2c12d90de2c29685991b9ba23
                 self.conn.commit()
 
             except Exception as e:
                 logging.info("error %s" % e)
                 pass
 
+<<<<<<< HEAD
+=======
+        self.cur.close()
+        self.conn.close()
+
+>>>>>>> 4ce69f3604d7f0c2c12d90de2c29685991b9ba23
     def start(self):
         self.find_best(market_config.SZ_A)
         self.find_best(market_config.SH_A1)
         self.find_best(market_config.SH_A2)
         self.find_best(market_config.SH_A3)
+<<<<<<< HEAD
         self.cur.close()
         self.conn.close()
+=======
+>>>>>>> 4ce69f3604d7f0c2c12d90de2c29685991b9ba23
 
 if __name__ == "__main__":
     get_boll_data = GetBollData()
